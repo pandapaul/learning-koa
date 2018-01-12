@@ -2,12 +2,14 @@ const Koa = require('koa')
 const bodyparser = require('koa-bodyparser')
 const route = require('koa-route')
 const fs = require('fs')
+const session = require('koa-session')
 
 const app = new Koa()
 const port = +process.argv[2] || 5000
 
 app.keys = ['some', 'keys']
 
+app.use(session(app))
 app.use(bodyparser())
 app.use(errorHandler())
 app.use(responseTime())
@@ -32,9 +34,8 @@ function responseTime () {
 }
 
 app.use(route.all('/', ctx => {
-  const views = (+ctx.cookies.get('view', { signed: true }) || 0) + 1
-  ctx.cookies.set('view', views, { signed: true })
-  ctx.body = `${views} views`
+  ctx.session.view = (ctx.session.view || 0) + 1
+  ctx.body = `${ctx.session.view} views`
 }))
 app.use(route.all('/error', ctx => {
   throw new Error('ooops')
