@@ -6,10 +6,11 @@ const fs = require('fs')
 const app = new Koa()
 const port = +process.argv[2] || 5000
 
+app.keys = ['some', 'keys']
+
 app.use(bodyparser())
 app.use(errorHandler())
 app.use(responseTime())
-app.use(upperCase())
 
 function errorHandler () {
   return async (ctx, next) => {
@@ -30,19 +31,10 @@ function responseTime () {
   }
 }
 
-function upperCase () {
-  return async (ctx, next) => {
-    await next()
-    ctx.body = ctx.body.toUpperCase()
-  }
-}
-
 app.use(route.all('/', ctx => {
-  if (ctx.request.is('application/json')) {
-    ctx.body = {message: 'hi!'}
-  } else {
-    ctx.body = 'OK'
-  }
+  const views = (+ctx.cookies.get('view', { signed: true }) || 0) + 1
+  ctx.cookies.set('view', views, { signed: true })
+  ctx.body = `${views} views`
 }))
 app.use(route.all('/error', ctx => {
   throw new Error('ooops')
