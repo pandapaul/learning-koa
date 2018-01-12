@@ -8,8 +8,12 @@ const port = +process.argv[2] || 5000
 
 app.use(bodyparser())
 
-app.use(route.get('/', ctx => {
-  ctx.body = 'hello koa'
+app.use(route.all('/', ctx => {
+  if (ctx.request.is('application/json')) {
+    ctx.body = {message: 'hi!'}
+  } else {
+    ctx.body = 'ok'
+  }
 }))
 app.use(route.post('/', ctx => {
   ctx.body = (ctx.request.body.name || '').toUpperCase()
