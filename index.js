@@ -7,8 +7,20 @@ const app = new Koa()
 const port = +process.argv[2] || 5000
 
 app.use(bodyparser())
+app.use(errorHandler())
 app.use(responseTime())
 app.use(upperCase())
+
+function errorHandler () {
+  return async (ctx, next) => {
+    try {
+      await next()
+    } catch (err) {
+      ctx.status = 500
+      ctx.body = 'internal server error'
+    }
+  }
+}
 
 function responseTime () {
   return async (ctx, next) => {
@@ -29,8 +41,11 @@ app.use(route.all('/', ctx => {
   if (ctx.request.is('application/json')) {
     ctx.body = {message: 'hi!'}
   } else {
-    ctx.body = 'hello koa'
+    ctx.body = 'OK'
   }
+}))
+app.use(route.all('/error', ctx => {
+  throw new Error('ooops')
 }))
 app.use(route.post('/', ctx => {
   ctx.body = (ctx.request.body.name || '').toUpperCase()
