@@ -3,6 +3,12 @@ const bodyparser = require('koa-bodyparser')
 const route = require('koa-route')
 const fs = require('fs')
 const session = require('koa-session')
+const views = require('co-views')
+const path = require('path')
+
+const render = views(path.join(__dirname, 'views'), {
+  ext: 'ejs'
+})
 
 const app = new Koa()
 const port = +process.argv[2] || 5000
@@ -33,9 +39,19 @@ function responseTime () {
   }
 }
 
-app.use(route.all('/', ctx => {
-  ctx.session.view = (ctx.session.view || 0) + 1
-  ctx.body = `${ctx.session.view} views`
+app.use(route.get('/', ctx => {
+  const user = {
+    name: {
+      first: 'Tobi',
+      last: 'Holowaychuk'
+    },
+    species: 'ferret',
+    age: 3
+  }
+  return render('user', { user })
+  .then(t => {
+    ctx.body = t
+  })
 }))
 app.use(route.all('/error', ctx => {
   throw new Error('ooops')
